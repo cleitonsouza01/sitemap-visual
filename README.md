@@ -65,7 +65,17 @@ Or inside a Claude Code session:
 
 Updates arrive with `claude plugin marketplace update sitemap-visual`.
 
-### Option B: copy the skill
+### Option B: skills CLI (Claude Code, Cursor, Codex and other agents)
+
+```bash
+npx skills add cleitonsouza01/sitemap-visual
+```
+
+Listed on [skills.sh](https://skills.sh/cleitonsouza01/sitemap-visual/sitemap-visual).
+The map itself is a Claude Design canvas, so building one still needs Claude
+with Artifacts.
+
+### Option C: copy the skill
 
 ```bash
 git clone https://github.com/cleitonsouza01/sitemap-visual.git
