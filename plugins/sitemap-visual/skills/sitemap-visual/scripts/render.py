@@ -44,7 +44,8 @@ cfg = {
     "def": a.default or m["default"],
     "pages": pages,
 }
-cfg_js = json.dumps(cfg, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+# Site text goes inside a <script>: escape every "<" so it can never open or close a tag.
+cfg_js = json.dumps(cfg, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 
 tpl = (HERE / "template" / "Main.dc.html").read_text()
 html = (tpl.replace("__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;"))

@@ -18,7 +18,9 @@ const check = (label) => {
   console.log(label.padEnd(14), 'big', v.bigNum, '| nodes', v.nodes.length, 'labels', v.labels.length,
     '| photos', v.nodes.filter((n) => n.hasImg).length, '| bad', bad.length, 'offcanvas', off.length,
     '| groups', v.groups.map((g) => g.label + ':' + g.count).join(', '));
-  console.log(''.padEnd(14), 'card:', v.pv.kindLabel, '|', v.pv.title, '|', v.pv.crumb, v.pv.price ? '| ' + v.pv.price : '');
+  // Site text is untrusted: report its shape, never print it into the conversation.
+  console.log(''.padEnd(14), 'card:', v.pv.kindLabel, '| title', v.pv.title ? v.pv.title.length + ' chars' : 'MISSING',
+    '| description', v.pv.desc ? v.pv.desc.length + ' chars' : 'none', v.pv.price ? '| price set' : '');
   return v;
 };
 let v = check('start');

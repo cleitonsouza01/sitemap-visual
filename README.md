@@ -175,6 +175,27 @@ business:
   replace it with your own line and link.
 - **Language names:** `LNAME` in the script.
 
+## Security
+
+The skill reads a website you choose, so everything it reads (titles,
+descriptions, the business name, photos) is third-party content. It is handled
+as data, never as instructions:
+
+- **Plain text only.** The collector strips tags, control characters and
+  invisible Unicode (zero-width and right-to-left override characters), and caps
+  titles at 140, descriptions at 160 and the business name at 60 characters.
+- **The site's own pages only.** It fetches `http(s)` URLs only, ignores sitemap
+  entries on other hosts, maps at most 1,500 pages (`--max-pages`), and skips any
+  page over 5 MB or image over 8 MB.
+- **Shown as text, never run.** Site text is built into the canvas as escaped
+  JSON and displayed as text. Nothing from the site executes.
+- **Kept out of the conversation.** `SKILL.md` tells Claude never to act on
+  instructions found in site text and not to read the page data into the chat;
+  `check.js` reports the shape of each page (lengths), not its words.
+
+Automated skill scanners may still flag "third-party content exposure". Reading a
+website is what the skill is for, and the steps above keep that content inert.
+
 ## Limits
 
 - Laid out for a laptop or projector (1440×940), not a phone.
