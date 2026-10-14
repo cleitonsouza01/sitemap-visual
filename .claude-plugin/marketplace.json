@@ -1,0 +1,15 @@
+{
+  "name": "sitemap-visual",
+  "description": "Interactive sitemap maps for local businesses, built as Claude Design canvases.",
+  "owner": {
+    "name": "Cleiton Souza",
+    "url": "https://github.com/cleitonsouza01"
+  },
+  "plugins": [
+    {
+      "name": "sitemap-visual",
+      "source": "./plugins/sitemap-visual",
+      "description": "Show a business every page Google can find: an interactive map built from its live sitemap, with a Google-style preview for each page."
+    }
+  ]
+}

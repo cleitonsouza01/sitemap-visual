@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>__TITLE__</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#5e60f7}
+a{color:#1A0DAB}a:hover{color:#0B0670}
+.n{cursor:pointer;transition:opacity .25s ease,transform .18s ease,box-shadow .2s ease;animation:pop .5s cubic-bezier(.2,.9,.3,1.2) backwards}
+.n:hover{transform:scale(1.14);z-index:5}
+.n:focus-visible{outline:3px solid #F2B441;outline-offset:3px}
+.e{transition:opacity .25s ease,background-color .25s ease;animation:fade .6s ease backwards}
+.chip{cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.chip:focus-visible{outline:3px solid #F2B441;outline-offset:2px}
+.live:hover{text-decoration:underline}
+.sp{background-image:url(__SPRITE_URL__);background-repeat:no-repeat;background-color:#143529}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion: reduce){.n,.e{animation:none;transition:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 940px; box-sizing: border-box; padding: 44px 32px; display: flex; gap: 40px; background: linear-gradient(rgba(23, 19, 63, 0.24), rgba(23, 19, 63, 0.24)), linear-gradient(135deg, #5e60f7 0%, #fbcafa 100%); color: #F4EFE2; font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; overflow: hidden">
+
+  <div style="width: 484px; flex-shrink: 0; box-sizing: border-box; padding: 28px 24px; border-radius: 24px; background: rgba(23, 19, 63, 0.92); box-shadow: 0 24px 60px rgba(23, 19, 63, 0.35); display: flex; flex-direction: column; gap: 20px; min-width: 0">
+    <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #B9B4F0">{{cfg.eyebrow}}</div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: baseline; gap: 16px">
+        <span style="font-size: 112px; line-height: 0.9; font-weight: 800; letter-spacing: -0.04em; color: #F2B441; font-variant-numeric: tabular-nums">{{bigNum}}</span>
+        <span style="font-size: 22px; line-height: 1.15; font-weight: 600; color: #F4EFE2; text-wrap: balance">{{leadText}}</span>
+      </div>
+      <div style="font-size: 16px; line-height: 1.5; color: #DCD8FA">{{bigSub}}</div>
+    </div>
+
+    <sc-if value="{{hasLangs}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #B9B4F0">Language</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <sc-for list="{{langs}}" as="l" hint-placeholder-count="4">
+            <button type="button" class="chip" onClick="{{l.pick}}" aria-pressed="{{l.pressed}}" style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1.5px solid {{l.line}}; background: {{l.bg}}; color: {{l.fg}}; font-family: inherit; font-size: 15px; font-weight: 600">{{l.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #B9B4F0">What the pages are · tap to highlight</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+          <button type="button" class="chip" onClick="{{g.pick}}" aria-pressed="{{g.pressed}}" style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 12px; border: 1.5px solid {{g.line}}; background: {{g.bg}}; color: #F4EFE2; font-family: inherit; font-size: 15px; font-weight: 600; text-align: left">
+            <span style="width: 12px; height: 12px; border-radius: 6px; flex-shrink: 0; background: {{g.color}}"></span>
+            <span style="flex: 1; min-width: 0">{{g.label}}</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: {{g.color}}; font-variant-numeric: tabular-nums">{{g.count}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #B9B4F0">How Google shows it</span>
+        <span style="font-size: 13px; color: #F2B441; font-weight: 600">{{pv.kindLabel}}</span>
+      </div>
+      <div style="background: #FFFFFF; color: #202124; border-radius: 16px; padding: 18px 20px; display: flex; gap: 16px; font-family: 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif; box-shadow: 0 18px 40px rgba(0,0,0,0.28)">
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <sc-if value="{{cfg.hasIcon}}" hint-placeholder-val="{{ true }}">
+              <img src="{{cfg.iconUrl}}" alt="{{cfg.iconAlt}}" style="width: 28px; height: 28px; border-radius: 14px; object-fit: cover; flex-shrink: 0; border: 1px solid #DADCE0; background: #FFFFFF">
+            </sc-if>
+            <sc-if value="{{cfg.noIcon}}" hint-placeholder-val="{{ false }}">
+              <span style="width: 28px; height: 28px; border-radius: 14px; background: #17133F; color: #F2B441; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0">{{cfg.initial}}</span>
+            </sc-if>
+            <span style="display: flex; flex-direction: column; min-width: 0">
+              <span style="font-size: 14px; color: #202124">{{cfg.business}}</span>
+              <span style="font-size: 12px; color: #4D5156; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{pv.crumb}}</span>
+            </span>
+          </div>
+          <a class="live" href="{{pv.url}}" style="font-size: 20px; line-height: 1.3; color: #1A0DAB; text-decoration: none">{{pv.title}}</a>
+          <div style="font-size: 14px; line-height: 1.55; color: #4D5156">{{pv.desc}}</div>
+          <sc-if value="{{pv.hasPrice}}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 13px; color: #4D5156">Price: <span style="color: #202124; font-weight: 600">{{pv.price}}</span></div>
+          </sc-if>
+        </div>
+        <sc-if value="{{pv.hasImg}}" hint-placeholder-val="{{ false }}">
+          <span class="sp" role="img" aria-label="{{pv.alt}}" style="display: block; width: 92px; height: 92px; border-radius: 10px; flex-shrink: 0; background-size: {{pv.bs}}px auto; background-position: {{pv.bp}}"></span>
+        </sc-if>
+      </div>
+      <div style="font-size: 13px; line-height: 1.5; color: #B9B4F0">{{pv.note}}</div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid rgba(244,239,226,0.14)">
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; line-height: 1.6; color: #A9A3E6">{{sourceNote}}</div>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center">
+    <div style="position: relative; width: 852px; height: 852px; flex-shrink: 0">
+      <div aria-hidden="true" style="position: absolute; left: 76px; top: 76px; width: 700px; height: 700px; border-radius: 50%; border: 1.5px dashed rgba(23,19,63,0.22); box-sizing: border-box"></div>
+      <div aria-hidden="true" style="position: absolute; left: 206px; top: 206px; width: 440px; height: 440px; border-radius: 50%; border: 1.5px dashed rgba(23,19,63,0.16); box-sizing: border-box"></div>
+
+      <sc-for list="{{edges}}" as="e" hint-placeholder-count="0">
+        <div class="e" aria-hidden="true" style="position: absolute; left: {{e.x}}px; top: {{e.y}}px; width: {{e.w}}px; height: {{e.h}}px; margin-top: {{e.m}}px; background: {{e.c}}; opacity: {{e.o}}; transform: rotate({{e.a}}deg); transform-origin: 0 50%; animation-delay: {{e.d}}ms; border-radius: 2px"></div>
+      </sc-for>
+
+      <sc-for list="{{labels}}" as="t" hint-placeholder-count="0">
+        <div aria-hidden="true" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; width: 130px; margin-left: -65px; margin-top: -9px; text-align: center; font-size: 13px; line-height: 18px; font-weight: 700; color: #17133F; opacity: {{t.o}}; transition: opacity .25s ease; pointer-events: none">{{t.text}}</div>
+      </sc-for>
+
+      <sc-for list="{{nodes}}" as="n" hint-placeholder-count="0">
+        <button type="button" class="n" aria-label="{{n.aria}}" onClick="{{n.pick}}" onMouseEnter="{{n.enter}}" onMouseLeave="{{leave}}" style="position: absolute; left: {{n.l}}px; top: {{n.t}}px; width: {{n.w}}px; height: {{n.h}}px; padding: 0; border: {{n.bw}}px solid {{n.line}}; border-radius: {{n.r}}px; background: {{n.bg}}; color: #17133F; opacity: {{n.o}}; box-shadow: {{n.glow}}; animation-delay: {{n.d}}ms; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: inherit; box-sizing: border-box">
+          <sc-if value="{{n.hasImg}}" hint-placeholder-val="{{ false }}">
+            <span class="sp" aria-hidden="true" style="display: block; width: 100%; height: 100%; background-size: {{n.bs}}px auto; background-position: {{n.bp}}"></span>
+          </sc-if>
+          <sc-if value="{{n.isTown}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+          </sc-if>
+          <sc-if value="{{n.isCatering}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17h18"></path><path d="M5 17a7 7 0 0 1 14 0"></path><path d="M12 7V5"></path><path d="M4 20h16"></path></svg>
+          </sc-if>
+          <sc-if value="{{n.isAbout}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6"></path><path d="M12 7.5v.01"></path></svg>
+          </sc-if>
+          <sc-if value="{{n.isContact}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg>
+          </sc-if>
+          <sc-if value="{{n.isDoc}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v4h4"></path><path d="M9 12h6"></path><path d="M9 16h6"></path></svg>
+          </sc-if>
+          <sc-if value="{{n.isHub}}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 15px; font-weight: 800; letter-spacing: 0.01em; color: #17133F">{{n.text}}</span>
+          </sc-if>
+          <sc-if value="{{n.isHome}}" hint-placeholder-val="{{ false }}">
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1; padding: 0 8px; text-align: center">
+              <span style="font-size: {{homeSize}}px; font-weight: 800; letter-spacing: -0.02em; color: #17133F">{{homeLine1}}</span>
+              <span style="font-size: {{homeSize}}px; font-weight: 800; letter-spacing: -0.02em; color: #17133F">{{homeLine2}}</span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #4B4680; margin-top: 4px">Home</span>
+            </span>
+          </sc-if>
+        </button>
+      </sc-for>
+
+      <sc-if value="{{loading}}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; left: 0; top: 0; width: 852px; height: 852px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #17133F">{{loadingText}}</div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: center; pointer-events: none">
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 8px 20px; border-radius: 20px; background: rgba(23, 19, 63, 0.88); box-shadow: 0 8px 24px rgba(23, 19, 63, 0.30); font-size: 15px; pointer-events: auto">
+      <span style="font-weight: 800; letter-spacing: 0.01em; color: #F4EFE2">Your Potential Multiplied.</span>
+      <span aria-hidden="true" style="color: #A9A3E6">·</span>
+      <a href="https://sunobot.com" style="color: #F2B441; font-weight: 700; text-decoration: none">sunobot.com</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":940}}'>
+// Generated by the sitemap-visual skill (github.com/cleitonsouza01/sitemap-visual). Everything business-specific lives in CFG.
+const CFG = __CONFIG__;
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pages: CFG.pages, failed: false, lang: CFG.langs.length > 1 ? 'all' : CFG.langs[0], group: null, sel: CFG.def, hover: null };
+  }
+
+  // Background offsets of photo `sp` in the sheet, drawn at `size` px.
+  sprite(sp, size) {
+    const cols = CFG.sprite ? CFG.sprite.cols : 1;
+    return { bs: cols * size, bp: -(sp % cols) * size + 'px ' + -Math.floor(sp / cols) * size + 'px' };
+  }
+
+  groupOf(kind) {
+    if (kind === 'item') return 'items';
+    if (kind === 'town') return 'towns';
+    if (kind === 'menuHub' || kind === 'cat') return 'menu';
+    return 'business';
+  }
+
+  text(pg, lang) {
+    return pg[lang] || pg[CFG.langs[0]] || CFG.langs.map((l) => pg[l]).find(Boolean) || [pg.p, '', ''];
+  }
+
+  titleCase(slug) {
+    const small = { de: 1, del: 1, la: 1, da: 1, do: 1, of: 1, the: 1, and: 1 };
+    return slug.split('-').map((w, i) => (i && small[w] ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
+  }
+
+  layout(pages) {
+    if (this._lay && this._laySrc === pages) return this._lay;
+    const C = 426;
+    const byP = {};
+    pages.forEach((x) => { byP[x.p] = x; });
+    const items = pages.filter((x) => x.k === 'item');
+    const towns = pages.filter((x) => x.k === 'town');
+    const infos = pages.filter((x) => x.k === 'page');
+    const sectors = [items, towns, infos].filter((s) => s.length).length;
+    // Towns and business pages carry labels: with many items, give each a wider
+    // slot (weight w), but never more than 35% of the circle.
+    const k = towns.length + infos.length;
+    const rest = items.length + sectors;
+    const need = k ? (40 * rest) / Math.max(1, 2 * Math.PI * 284 - 40 * k) : 1;
+    const cap = k ? (0.35 * rest) / (0.65 * k) : 1;
+    const w = Math.max(1, Math.min(Math.round(need), Math.floor(cap) || 1));
+    const N = Math.max(rest + w * k, 8);
+    const step = (Math.PI * 2) / N;
+    const arc = step * 350;
+    const stagger = items.length + sectors > 40;
+    const itemSize = Math.round(Math.max(14, Math.min(46, stagger ? arc * 1.85 : arc * 0.85)));
+    const dotSize = Math.round(Math.max(16, Math.min(42, arc * w * 0.9)));
+    let slot = 0;
+    const nextAngle = (weight) => { const a = -Math.PI / 2 + step * (slot + (weight || 1) / 2); slot += weight || 1; return a; };
+    const at = (r, a) => ({ x: C + r * Math.cos(a), y: C + r * Math.sin(a) });
+    const nodes = {};
+    const add = (page, kind, r, a, w, h, extra) => {
+      const pt = at(r, a);
+      nodes[page.p] = Object.assign({ p: page.p, page: page, kind: kind, group: this.groupOf(kind), a: a, r: r, x: pt.x, y: pt.y, w: w, h: h }, extra || {});
+    };
+
+    const catAngles = {};
+    items.forEach((d, i) => {
+      const a = nextAngle();
+      const cat = '/menu/' + d.p.split('/')[2];
+      const parent = byP[cat] ? cat : '/menu';
+      add(d, 'item', stagger ? (i % 2 ? 378 : 322) : 350, a, itemSize, itemSize, { parent: parent, sp: d.sp });
+      if (byP[cat]) (catAngles[cat] = catAngles[cat] || []).push(a);
+    });
+    if (items.length) slot++;
+    const townAngles = [];
+    towns.forEach((t) => {
+      const a = nextAngle(w);
+      townAngles.push(a);
+      const m = /(?:to|em|en|a) ([^,|·]+), [A-Z]{2}\b/.exec(this.text(t, 'en')[0]);
+      add(t, 'town', 350, a, dotSize, dotSize, { parent: '/delivery', label: m ? m[1].trim() : this.titleCase(t.p.split('/')[2]) });
+    });
+    if (towns.length) slot++;
+    infos.forEach((pg) => {
+      const a = nextAngle(w);
+      const seg = pg.p.split('/').filter(Boolean)[0] || '';
+      let label = this.text(pg, 'en')[0].split(/ [·|] /)[0];
+      if (label.length > 18) label = this.titleCase(seg);
+      add(pg, 'page', 350, a, dotSize, dotSize, { parent: '/', label: label, icon: seg });
+    });
+
+    const mean = (xs) => xs.reduce((s, v) => s + v, 0) / xs.length;
+    Object.keys(catAngles).forEach((cat) => add(byP[cat], 'cat', 220, mean(catAngles[cat]), 20, 20, { parent: byP['/menu'] ? '/menu' : '/' }));
+    pages.filter((x) => x.k === 'cat' && !nodes[x.p]).forEach((x) => add(x, 'cat', 220, -Math.PI / 2, 20, 20, { parent: byP['/menu'] ? '/menu' : '/' }));
+    if (byP['/menu']) add(byP['/menu'], 'menuHub', 128, items.length ? mean(items.map((d) => nodes[d.p].a)) : -Math.PI / 2, 104, 40, { parent: '/', text: 'Menu' });
+    if (byP['/delivery']) add(byP['/delivery'], 'deliveryHub', 150, townAngles.length ? mean(townAngles) : Math.PI / 2, 112, 40, { parent: '/', text: 'Delivery' });
+    if (byP['/']) nodes['/'] = { p: '/', page: byP['/'], kind: 'home', group: 'business', a: 0, r: 0, x: C, y: C, w: 116, h: 116 };
+
+    // Labels: estimate each text box and keep a label only if it overlaps no
+    // label already placed (towns and pages first, then categories).
+    const catText = (pg) => {
+      let s = this.text(pg, CFG.langs[0])[0].split(' | ')[0].split(/ (?:in|en|em) /)[0];
+      return s.length > 18 ? s.split(/,| & | y | e /)[0] : s;
+    };
+    const placed = [];
+    const all = Object.keys(nodes).map((key) => nodes[key]);
+    all.filter((n) => n.label).concat(all.filter((n) => n.kind === 'cat')).forEach((n) => {
+      const r = n.kind === 'cat' ? 260 : 284;
+      const text = n.kind === 'cat' ? catText(n.page) : n.label;
+      const bw = Math.min(130, text.length * 7.4 + 8), bh = 20;
+      const x = C + r * Math.cos(n.a), y = C + r * Math.sin(n.a);
+      const box = { l: x - bw / 2, r: x + bw / 2, t: y - bh / 2, b: y + bh / 2 };
+      n.labelR = r;
+      n.showLabel = !placed.some((o) => box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t);
+      if (n.showLabel) placed.push(box);
+    });
+
+    const order = { home: 0, menuHub: 1, deliveryHub: 1, page: 2, cat: 2, town: 3, item: 4 };
+    const list = Object.keys(nodes).map((k) => nodes[k]).sort((a, b) => order[a.kind] - order[b.kind]);
+    this._lay = { nodes: nodes, list: list, total: list.length };
+    this._laySrc = pages;
+    return this._lay;
+  }
+
+  renderVals() {
+    const st = this.state;
+    const COLORS = { items: '#F2B441', towns: '#FF8A6A', menu: '#7FD6B0', business: '#C9B6FF' };
+    const NAMES = { items: CFG.itemNoun + ' pages', towns: 'Delivery towns', menu: 'Menu sections', business: 'Business pages' };
+    const LNAME = { en: 'English', es: 'Español', pt: 'Português', fr: 'Français', de: 'Deutsch', it: 'Italiano', nl: 'Nederlands', ja: '日本語', zh: '中文' };
+    const many = CFG.langs.length > 1;
+    const mult = st.lang === 'all' ? CFG.langs.length : 1;
+    const joinNames = (xs) => (xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]);
+    const words = CFG.business.split(' ');
+    const cut = Math.ceil(words.length / 2);
+    const cfg = Object.assign({}, CFG, { hasIcon: !!CFG.iconUrl, noIcon: !CFG.iconUrl, iconAlt: CFG.business + ' icon', initial: CFG.business.charAt(0) });
+    const base = {
+      cfg: cfg, hasLangs: many, leadText: 'pages on Google that lead to ' + CFG.business,
+      sourceNote: 'Every dot is a real page in ' + CFG.domain + '/sitemap.xml, with the title and description Google reads. Checked ' + CFG.checked + '.',
+      homeLine1: words.length > 1 ? words.slice(0, cut).join(' ') : CFG.business, homeLine2: words.length > 1 ? words.slice(cut).join(' ') : '',
+      homeSize: CFG.business.length > 16 ? 15 : CFG.business.length > 11 ? 18 : 22
+    };
+
+    const langs = (many ? [['all', 'All ' + CFG.langs.length]] : []).concat(CFG.langs.map((l) => [l, LNAME[l] || l.toUpperCase()])).map((l) => {
+      const on = st.lang === l[0];
+      return { label: l[1], pressed: on ? 'true' : 'false', bg: on ? '#F2B441' : 'transparent', fg: on ? '#17133F' : '#F4EFE2', line: on ? '#F2B441' : 'rgba(244,239,226,0.28)', pick: () => this.setState({ lang: l[0] }) };
+    });
+
+    if (!st.pages) {
+      return Object.assign(base, {
+        bigNum: '…', bigSub: 'Loading the pages…', langs: langs, groups: [], nodes: [], edges: [], labels: [],
+        leave: () => {}, loading: true, loadingText: st.failed ? 'The page list did not load. Reload this design to try again.' : 'Loading the pages…',
+        pv: { kindLabel: '', crumb: '', url: 'https://' + CFG.domain + '/', title: '', desc: '', hasPrice: false, price: '', hasImg: false, bs: 0, bp: '0 0', alt: '', note: '' }
+      });
+    }
+
+    const lay = this.layout(st.pages);
+    const counts = { items: 0, towns: 0, menu: 0, business: 0 };
+    lay.list.forEach((n) => { counts[n.group] += 1; });
+    const groups = ['items', 'towns', 'menu', 'business'].filter((g) => counts[g]).map((g) => {
+      const on = st.group === g;
+      return { label: NAMES[g], color: COLORS[g], count: counts[g] * mult, pressed: on ? 'true' : 'false', bg: on ? 'rgba(244,239,226,0.10)' : 'rgba(244,239,226,0.03)', line: on ? COLORS[g] : 'rgba(244,239,226,0.14)', pick: () => this.setState({ group: on ? null : g }) };
+    });
+
+    const activeP = st.hover && lay.nodes[st.hover] ? st.hover : (lay.nodes[st.sel] ? st.sel : '/');
+    const chain = {};
+    let cur = lay.nodes[activeP];
+    while (cur) { chain[cur.p] = true; cur = cur.parent ? lay.nodes[cur.parent] : null; }
+
+    const dim = (n) => (st.group && n.group !== st.group ? 0.14 : 1);
+    const delayOf = (n) => ({ home: 0, menuHub: 120, deliveryHub: 120, page: 240, cat: 240, town: 360, item: 420 + Math.round(((n.a + Math.PI / 2) / (Math.PI * 2)) * 500) }[n.kind]);
+    const L = st.lang === 'all' ? CFG.langs[0] : st.lang;
+
+    const edges = [];
+    lay.list.forEach((n) => {
+      if (!n.parent || !lay.nodes[n.parent]) return;
+      const p = lay.nodes[n.parent];
+      const dx = n.x - p.x, dy = n.y - p.y;
+      const hot = chain[n.p] && chain[p.p];
+      edges.push({ x: p.x, y: p.y, w: Math.sqrt(dx * dx + dy * dy), h: hot ? 3 : 1.5, m: hot ? -1.5 : -0.75, a: (Math.atan2(dy, dx) * 180) / Math.PI, c: hot ? '#17133F' : 'rgba(23,19,63,0.26)', o: hot ? 1 : dim(n) === 1 ? 1 : 0.25, d: delayOf(n) });
+    });
+
+    const ICONS = { catering: 1, about: 1, contact: 1 };
+    const nodes = lay.list.map((n) => {
+      const k = n.kind;
+      const photo = k === 'item' && n.sp != null && !!CFG.sprite;
+      const spr = photo ? this.sprite(n.sp, n.w - 2 * (n.w > 24 ? 2.5 : 1.5)) : { bs: 0, bp: '0 0' };
+      const bg = k === 'home' ? '#F4EFE2' : k === 'item' ? (photo ? '#143529' : COLORS.items) : COLORS[n.group];
+      const line = k === 'item' ? COLORS.items : k === 'home' ? '#F2B441' : '#FFFFFF';
+      return {
+        l: n.x - n.w / 2, t: n.y - n.h / 2, w: n.w, h: n.h, r: k === 'menuHub' || k === 'deliveryHub' ? 20 : n.w / 2,
+        bw: k === 'item' ? (n.w > 24 ? 2.5 : 1.5) : k === 'home' ? 4 : 2, line: line, bg: bg, o: dim(n),
+        glow: n.p === activeP ? '0 0 0 4px #FFFFFF, 0 0 0 7px #17133F, 0 10px 30px rgba(23,19,63,0.40)' : '0 6px 16px rgba(23,19,63,0.25)',
+        d: delayOf(n), aria: this.text(n.page, L)[0], ic: Math.max(10, Math.round(n.w * 0.48)),
+        hasImg: photo, bs: spr.bs, bp: spr.bp, isTown: k === 'town', isHub: k === 'menuHub' || k === 'deliveryHub', isHome: k === 'home',
+        isCatering: k === 'page' && n.icon === 'catering', isAbout: k === 'page' && n.icon === 'about', isContact: k === 'page' && n.icon === 'contact',
+        isDoc: k === 'page' && !ICONS[n.icon],
+        text: n.text || '',
+        pick: () => this.setState({ sel: n.p }),
+        enter: () => this.setState({ hover: n.p })
+      };
+    });
+
+    const catName = (title) => {
+      let s = title.split(' | ')[0].split(/ (?:in|en|em) /)[0];
+      if (s.length > 18) s = s.split(/,| & | y | e /)[0];
+      return s;
+    };
+    const labels = lay.list.filter((n) => n.showLabel).map((n) => ({
+      x: 426 + n.labelR * Math.cos(n.a), y: 426 + n.labelR * Math.sin(n.a),
+      text: n.kind === 'cat' ? catName(this.text(n.page, L)[0]) : n.label, o: dim(n) === 1 ? 1 : 0.2
+    }));
+
+    const node = lay.nodes[activeP];
+    const pg = node.page;
+    const tx = this.text(pg, L);
+    const url = tx[2] || 'https://' + CFG.domain + pg.p;
+    const crumb = url.replace(/^https?:\/\//, '').split('/').filter(Boolean).map((s) => s.replace(/-[0-9a-f]{8}$/, '')).join(' › ');
+    const SYM = { USD: '$', BRL: 'R$', EUR: '€', GBP: '£', CAD: 'CA$', MXN: 'MX$' };
+    const others = CFG.langs.filter((l) => l !== L).map((l) => LNAME[l] || l);
+    const KIND = { home: 'Home page', menuHub: 'Full menu page', cat: 'Category page', item: CFG.itemNoun + ' page', deliveryHub: 'Delivery areas page', town: 'Delivery town page', page: 'Business page' };
+    const pv = {
+      kindLabel: KIND[node.kind], crumb: crumb, url: url, title: tx[0], desc: tx[1],
+      hasPrice: !!pg.$, price: pg.$ ? (SYM[pg.cur || 'USD'] || (pg.cur + ' ')) + pg.$ : '',
+      hasImg: pg.sp != null && !!CFG.sprite, bs: this.sprite(pg.sp || 0, 92).bs, bp: this.sprite(pg.sp || 0, 92).bp, alt: tx[0],
+      note: (st.lang === 'all' && others.length ? 'Shown in ' + (LNAME[L] || L) + '. The same page also exists in ' + joinNames(others) + '. ' : '') + 'Tap any dot to see its page.'
+    };
+    const every = 'Every ' + CFG.itemNoun.toLowerCase() + (counts.towns ? ' and every delivery town' : '') + ' has its own page.';
+
+    return Object.assign(base, {
+      bigNum: String(lay.total * mult),
+      bigSub: st.lang === 'all' && many
+        ? lay.total + ' pages, each one in ' + joinNames(CFG.langs.map((l) => LNAME[l] || l)) + '. ' + every
+        : lay.total + ' pages' + (many ? ' in ' + (LNAME[st.lang] || st.lang) : '') + '. ' + every,
+      langs: langs, groups: groups, nodes: nodes, edges: edges, labels: labels,
+      leave: () => this.setState({ hover: null }),
+      loading: false, loadingText: '', pv: pv
+    });
+  }
+}
+</script>
+</body>
+</html>
