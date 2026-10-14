@@ -12,34 +12,11 @@ map automatically from the business's live `sitemap.xml`. You ask Claude for it;
 few minutes later you have an interactive canvas you can present on a laptop or a
 projector.
 
-```
-                       ● ● ● ●  dish photos  ● ● ● ●
-                 ●                                     ●
-             ●        Burritos     Fajitas     Tacos       ●
-          ●               ●           ●          ●            ●
-        ●                  ╲          │         ╱               ●
-       ●     Contact ◆      ╲    ┌────────┐    ╱                 ●
-      ●                      ───│  Menu  │───                     ●
-      ●    About ◆              └────────┘                         ●
-      ●              ◆──────── ( Business ) ─────────┐             ●
-      ●    Catering             (   Home   )         │             ●
-       ●                                       ┌──────────┐       ●
-        ●                                      │ Delivery │      ●
-          ●                                    └──────────┘    ●
-             ●      Pompano Beach ▼   Lighthouse Point ▼     ●
-                 ●        Deerfield Beach ▼   Boca Raton ▼ ●
+![Sitemap Visual for Baja Cafe, a Mexican restaurant in Deerfield Beach, FL: 201 pages on Google, every dish with its photo, seven delivery towns, three languages, and a Google-style preview of the selected page](docs/baja-cafe-map.jpg)
 
-  ┌──────────────────────────────────────────────────────────────┐
-  │ 201  pages on Google that lead to <Business>                 │
-  │ [All 3] [English] [Español] [Português]                      │
-  │ Dish pages 144 · Delivery towns 21 · Menu sections 21 · …    │
-  │ ┌──────────────────────────────────────────────┐             │
-  │ │ <Business>  · www.example.com › delivery › …  │  How Google │
-  │ │ Mexican Food Delivery to Lighthouse Point, FL │  shows it   │
-  │ │ We deliver tacos, burritos and enchiladas …   │             │
-  │ └──────────────────────────────────────────────┘             │
-  └──────────────────────────────────────────────────────────────┘
-```
+*The map for [Baja Cafe](https://www.bajacafefl.com), a Mexican restaurant in
+Deerfield Beach, FL: 67 pages in English, Español and Português = 201 ways to be
+found. The card on the left shows how Google presents the selected page.*
 
 ## What the map does
 
@@ -195,6 +172,10 @@ business:
 - A sitemap with only a few pages makes an unconvincing map; the skill says so
   instead of publishing one.
 - Photos come from each item page's `og:image`; items without one show as plain dots.
+
+## License
+
+[MIT](LICENSE) © 2026 Cleiton Souza
 
 ## Credits
 

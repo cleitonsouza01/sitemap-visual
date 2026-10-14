@@ -28,13 +28,13 @@ a{color:#1A0DAB}a:hover{color:#0B0670}
 </helmet>
 <div style="position: relative; width: 1440px; height: 940px; box-sizing: border-box; padding: 44px 32px; display: flex; gap: 40px; background: linear-gradient(rgba(23, 19, 63, 0.24), rgba(23, 19, 63, 0.24)), linear-gradient(135deg, #5e60f7 0%, #fbcafa 100%); color: #F4EFE2; font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; overflow: hidden">
 
-  <div style="width: 484px; flex-shrink: 0; box-sizing: border-box; padding: 28px 24px; border-radius: 24px; background: rgba(23, 19, 63, 0.92); box-shadow: 0 24px 60px rgba(23, 19, 63, 0.35); display: flex; flex-direction: column; gap: 20px; min-width: 0">
+  <div style="width: 484px; flex-shrink: 0; box-sizing: border-box; padding: 28px 24px; border-radius: 24px; background: rgba(23, 19, 63, 0.92); box-shadow: 0 24px 60px rgba(23, 19, 63, 0.35); display: flex; flex-direction: column; gap: 18px; min-width: 0">
     <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #B9B4F0">{{cfg.eyebrow}}</div>
 
     <div style="display: flex; flex-direction: column; gap: 10px">
       <div style="display: flex; align-items: baseline; gap: 16px">
         <span style="font-size: 112px; line-height: 0.9; font-weight: 800; letter-spacing: -0.04em; color: #F2B441; font-variant-numeric: tabular-nums">{{bigNum}}</span>
-        <span style="font-size: 22px; line-height: 1.15; font-weight: 600; color: #F4EFE2; text-wrap: balance">{{leadText}}</span>
+        <span style="font-size: {{leadSize}}px; line-height: 1.15; font-weight: 600; color: #F4EFE2; text-wrap: balance">{{leadText}}</span>
       </div>
       <div style="font-size: 16px; line-height: 1.5; color: #DCD8FA">{{bigSub}}</div>
     </div>
@@ -109,10 +109,6 @@ a{color:#1A0DAB}a:hover{color:#0B0670}
         <div class="e" aria-hidden="true" style="position: absolute; left: {{e.x}}px; top: {{e.y}}px; width: {{e.w}}px; height: {{e.h}}px; margin-top: {{e.m}}px; background: {{e.c}}; opacity: {{e.o}}; transform: rotate({{e.a}}deg); transform-origin: 0 50%; animation-delay: {{e.d}}ms; border-radius: 2px"></div>
       </sc-for>
 
-      <sc-for list="{{labels}}" as="t" hint-placeholder-count="0">
-        <div aria-hidden="true" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; width: 130px; margin-left: -65px; margin-top: -9px; text-align: center; font-size: 13px; line-height: 18px; font-weight: 700; color: #17133F; opacity: {{t.o}}; transition: opacity .25s ease; pointer-events: none">{{t.text}}</div>
-      </sc-for>
-
       <sc-for list="{{nodes}}" as="n" hint-placeholder-count="0">
         <button type="button" class="n" aria-label="{{n.aria}}" onClick="{{n.pick}}" onMouseEnter="{{n.enter}}" onMouseLeave="{{leave}}" style="position: absolute; left: {{n.l}}px; top: {{n.t}}px; width: {{n.w}}px; height: {{n.h}}px; padding: 0; border: {{n.bw}}px solid {{n.line}}; border-radius: {{n.r}}px; background: {{n.bg}}; color: #17133F; opacity: {{n.o}}; box-shadow: {{n.glow}}; animation-delay: {{n.d}}ms; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: inherit; box-sizing: border-box">
           <sc-if value="{{n.hasImg}}" hint-placeholder-val="{{ false }}">
@@ -144,6 +140,10 @@ a{color:#1A0DAB}a:hover{color:#0B0670}
             </span>
           </sc-if>
         </button>
+      </sc-for>
+
+      <sc-for list="{{labels}}" as="t" hint-placeholder-count="0">
+        <div aria-hidden="true" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; width: {{t.w}}px; margin-left: {{t.ml}}px; margin-top: {{t.mt}}px; box-sizing: border-box; padding: 1px 6px; border-radius: 8px; background: rgba(244, 239, 226, 0.78); text-align: center; font-size: 12px; line-height: 16px; font-weight: 700; color: #17133F; opacity: {{t.o}}; transition: opacity .25s ease; pointer-events: none">{{t.text}}</div>
       </sc-for>
 
       <sc-if value="{{loading}}" hint-placeholder-val="{{ true }}">
@@ -265,14 +265,22 @@ class Component extends DCLogic {
     const placed = [];
     const all = Object.keys(nodes).map((key) => nodes[key]);
     all.filter((n) => n.label).concat(all.filter((n) => n.kind === 'cat')).forEach((n) => {
-      const r = n.kind === 'cat' ? 260 : 284;
       const text = n.kind === 'cat' ? catText(n.page) : n.label;
-      const bw = Math.min(130, text.length * 7.4 + 8), bh = 20;
-      const x = C + r * Math.cos(n.a), y = C + r * Math.sin(n.a);
-      const box = { l: x - bw / 2, r: x + bw / 2, t: y - bh / 2, b: y + bh / 2 };
-      n.labelR = r;
-      n.showLabel = !placed.some((o) => box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t);
-      if (n.showLabel) placed.push(box);
+      const textW = text.length * 6.9 + 14;
+      const bw = Math.min(124, textW), bh = textW > 124 ? 36 : 20;
+      n.labelW = bw;
+      n.labelH = bh;
+      n.showLabel = false;
+      // Try a few distances from the center before dropping the label.
+      (n.kind === 'cat' ? [260, 238] : [284, 250, 314]).some((r) => {
+        const x = C + r * Math.cos(n.a), y = C + r * Math.sin(n.a);
+        const box = { l: x - bw / 2, r: x + bw / 2, t: y - bh / 2, b: y + bh / 2 };
+        if (placed.some((o) => box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t)) return false;
+        placed.push(box);
+        n.labelR = r;
+        n.showLabel = true;
+        return true;
+      });
     });
 
     const order = { home: 0, menuHub: 1, deliveryHub: 1, page: 2, cat: 2, town: 3, item: 4 };
@@ -294,7 +302,7 @@ class Component extends DCLogic {
     const cut = Math.ceil(words.length / 2);
     const cfg = Object.assign({}, CFG, { hasIcon: !!CFG.iconUrl, noIcon: !CFG.iconUrl, iconAlt: CFG.business + ' icon', initial: CFG.business.charAt(0) });
     const base = {
-      cfg: cfg, hasLangs: many, leadText: 'pages on Google that lead to ' + CFG.business,
+      cfg: cfg, hasLangs: many, leadText: 'pages on Google that lead to ' + CFG.business, leadSize: CFG.business.length > 14 ? 18 : 22,
       sourceNote: 'Every dot is a real page in ' + CFG.domain + '/sitemap.xml, with the title and description Google reads. Checked ' + CFG.checked + '.',
       homeLine1: words.length > 1 ? words.slice(0, cut).join(' ') : CFG.business, homeLine2: words.length > 1 ? words.slice(cut).join(' ') : '',
       homeSize: CFG.business.length > 16 ? 15 : CFG.business.length > 11 ? 18 : 22
@@ -367,6 +375,7 @@ class Component extends DCLogic {
     };
     const labels = lay.list.filter((n) => n.showLabel).map((n) => ({
       x: 426 + n.labelR * Math.cos(n.a), y: 426 + n.labelR * Math.sin(n.a),
+      w: n.labelW, ml: -n.labelW / 2, mt: -n.labelH / 2,
       text: n.kind === 'cat' ? catName(this.text(n.page, L)[0]) : n.label, o: dim(n) === 1 ? 1 : 0.2
     }));
 

@@ -199,6 +199,7 @@ def collect(a):
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(line_buffering=True)  # show progress when output goes to a log file
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
     ap.add_argument("--slug")
