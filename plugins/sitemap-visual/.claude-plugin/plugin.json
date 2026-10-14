@@ -1,7 +1,7 @@
 {
   "name": "sitemap-visual",
   "description": "Turn a storefront's sitemap.xml into an interactive map of every page Google can find, with real titles, descriptions, photos and prices, as a Claude Design canvas.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Cleiton Souza",
     "url": "https://github.com/cleitonsouza01"

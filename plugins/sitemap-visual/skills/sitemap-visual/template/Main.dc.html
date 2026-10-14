@@ -114,6 +114,9 @@ a{color:#1A0DAB}a:hover{color:#0B0670}
           <sc-if value="{{n.hasImg}}" hint-placeholder-val="{{ false }}">
             <span class="sp" aria-hidden="true" style="display: block; width: 100%; height: 100%; background-size: {{n.bs}}px auto; background-position: {{n.bp}}"></span>
           </sc-if>
+          <sc-if value="{{n.isList}}" hint-placeholder-val="{{ false }}">
+            <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M4.5 6h.01"></path><path d="M4.5 12h.01"></path><path d="M4.5 18h.01"></path></svg>
+          </sc-if>
           <sc-if value="{{n.isTown}}" hint-placeholder-val="{{ false }}">
             <svg width="{{n.ic}}" height="{{n.ic}}" viewBox="0 0 24 24" fill="none" stroke="#17133F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
           </sc-if>
@@ -201,10 +204,13 @@ class Component extends DCLogic {
     const items = pages.filter((x) => x.k === 'item');
     const towns = pages.filter((x) => x.k === 'town');
     const infos = pages.filter((x) => x.k === 'page');
-    const sectors = [items, towns, infos].filter((s) => s.length).length;
-    // Towns and business pages carry labels: with many items, give each a wider
-    // slot (weight w), but never more than 35% of the circle.
-    const k = towns.length + infos.length;
+    // A category with no item pages under it is a leaf: it gets its own place
+    // on the outer ring (and its own label) instead of a spot on the inner ring.
+    const emptyCats = pages.filter((x) => x.k === 'cat' && !items.some((d) => d.p.startsWith(x.p + '/')));
+    const sectors = [items, emptyCats, towns, infos].filter((s) => s.length).length;
+    // Leaves with labels (empty categories, towns, business pages): with many
+    // items, give each a wider slot (weight w), but never more than 35% of the circle.
+    const k = emptyCats.length + towns.length + infos.length;
     const rest = items.length + sectors;
     const need = k ? (40 * rest) / Math.max(1, 2 * Math.PI * 284 - 40 * k) : 1;
     const cap = k ? (0.35 * rest) / (0.65 * k) : 1;
@@ -233,6 +239,10 @@ class Component extends DCLogic {
       if (byP[cat]) (catAngles[cat] = catAngles[cat] || []).push(a);
     });
     if (items.length) slot++;
+    emptyCats.forEach((c) => {
+      add(c, 'cat', 350, nextAngle(w), dotSize, dotSize, { parent: byP['/menu'] ? '/menu' : '/', leaf: true });
+    });
+    if (emptyCats.length) slot++;
     const townAngles = [];
     towns.forEach((t) => {
       const a = nextAngle(w);
@@ -251,8 +261,8 @@ class Component extends DCLogic {
 
     const mean = (xs) => xs.reduce((s, v) => s + v, 0) / xs.length;
     Object.keys(catAngles).forEach((cat) => add(byP[cat], 'cat', 220, mean(catAngles[cat]), 20, 20, { parent: byP['/menu'] ? '/menu' : '/' }));
-    pages.filter((x) => x.k === 'cat' && !nodes[x.p]).forEach((x) => add(x, 'cat', 220, -Math.PI / 2, 20, 20, { parent: byP['/menu'] ? '/menu' : '/' }));
-    if (byP['/menu']) add(byP['/menu'], 'menuHub', 128, items.length ? mean(items.map((d) => nodes[d.p].a)) : -Math.PI / 2, 104, 40, { parent: '/', text: 'Menu' });
+    const menuKids = items.concat(emptyCats).map((d) => nodes[d.p].a);
+    if (byP['/menu']) add(byP['/menu'], 'menuHub', 128, menuKids.length ? mean(menuKids) : -Math.PI / 2, 104, 40, { parent: '/', text: 'Menu' });
     if (byP['/delivery']) add(byP['/delivery'], 'deliveryHub', 150, townAngles.length ? mean(townAngles) : Math.PI / 2, 112, 40, { parent: '/', text: 'Delivery' });
     if (byP['/']) nodes['/'] = { p: '/', page: byP['/'], kind: 'home', group: 'business', a: 0, r: 0, x: C, y: C, w: 116, h: 116 };
 
@@ -262,23 +272,30 @@ class Component extends DCLogic {
       let s = this.text(pg, CFG.langs[0])[0].split(' | ')[0].split(/ (?:in|en|em) /)[0];
       return s.length > 18 ? s.split(/,| & | y | e /)[0] : s;
     };
-    const placed = [];
     const all = Object.keys(nodes).map((key) => nodes[key]);
-    all.filter((n) => n.label).concat(all.filter((n) => n.kind === 'cat')).forEach((n) => {
+    // Every dot is an obstacle (with a little air), so a label never covers one.
+    const placed = all.map((n) => ({ l: n.x - n.w / 2 - 3, r: n.x + n.w / 2 + 3, t: n.y - n.h / 2 - 3, b: n.y + n.h / 2 + 3 }));
+    const hits = (box) => placed.some((o) => box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t);
+    all.filter((n) => n.label || n.kind === 'cat').forEach((n) => {
       const text = n.kind === 'cat' ? catText(n.page) : n.label;
       const textW = text.length * 6.9 + 14;
       const bw = Math.min(124, textW), bh = textW > 124 ? 36 : 20;
+      // How far the box reaches along the radius at this angle: wide labels at
+      // 3 and 9 o'clock reach far, so they sit further from their dot.
+      const reach = (bw / 2) * Math.abs(Math.cos(n.a)) + (bh / 2) * Math.abs(Math.sin(n.a));
+      const gap = n.w / 2 + 6 + reach;
+      const inner = n.kind === 'cat' && !n.leaf;
+      // Leaves on the outer ring: just inside the dot, then a step further in.
+      // Inner categories: just outside the dot, else just inside it.
+      const tries = inner ? [n.r + gap, n.r - gap, n.r + gap + 18] : [0, 26, 52, 78, 104].map((d) => n.r - gap - d);
       n.labelW = bw;
       n.labelH = bh;
-      n.showLabel = false;
-      // Try a few distances from the center before dropping the label.
-      (n.kind === 'cat' ? [260, 238] : [284, 250, 314]).some((r) => {
+      n.showLabel = tries.some((r) => {
         const x = C + r * Math.cos(n.a), y = C + r * Math.sin(n.a);
         const box = { l: x - bw / 2, r: x + bw / 2, t: y - bh / 2, b: y + bh / 2 };
-        if (placed.some((o) => box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t)) return false;
+        if (hits(box)) return false;
         placed.push(box);
         n.labelR = r;
-        n.showLabel = true;
         return true;
       });
     });
@@ -359,7 +376,7 @@ class Component extends DCLogic {
         bw: k === 'item' ? (n.w > 24 ? 2.5 : 1.5) : k === 'home' ? 4 : 2, line: line, bg: bg, o: dim(n),
         glow: n.p === activeP ? '0 0 0 4px #FFFFFF, 0 0 0 7px #17133F, 0 10px 30px rgba(23,19,63,0.40)' : '0 6px 16px rgba(23,19,63,0.25)',
         d: delayOf(n), aria: this.text(n.page, L)[0], ic: Math.max(10, Math.round(n.w * 0.48)),
-        hasImg: photo, bs: spr.bs, bp: spr.bp, isTown: k === 'town', isHub: k === 'menuHub' || k === 'deliveryHub', isHome: k === 'home',
+        hasImg: photo, bs: spr.bs, bp: spr.bp, isTown: k === 'town', isList: k === 'cat' && !!n.leaf, isHub: k === 'menuHub' || k === 'deliveryHub', isHome: k === 'home',
         isCatering: k === 'page' && n.icon === 'catering', isAbout: k === 'page' && n.icon === 'about', isContact: k === 'page' && n.icon === 'contact',
         isDoc: k === 'page' && !ICONS[n.icon],
         text: n.text || '',
@@ -393,13 +410,16 @@ class Component extends DCLogic {
       hasImg: pg.sp != null && !!CFG.sprite, bs: this.sprite(pg.sp || 0, 92).bs, bp: this.sprite(pg.sp || 0, 92).bp, alt: tx[0],
       note: (st.lang === 'all' && others.length ? 'Shown in ' + (LNAME[L] || L) + '. The same page also exists in ' + joinNames(others) + '. ' : '') + 'Tap any dot to see its page.'
     };
-    const every = 'Every ' + CFG.itemNoun.toLowerCase() + (counts.towns ? ' and every delivery town' : '') + ' has its own page.';
+    const own = [];
+    if (counts.items) own.push('every ' + CFG.itemNoun.toLowerCase());
+    if (counts.towns) own.push('every delivery town');
+    const every = own.length ? ' ' + own.join(' and ').replace(/^e/, 'E') + ' has its own page.' : '';
 
     return Object.assign(base, {
       bigNum: String(lay.total * mult),
       bigSub: st.lang === 'all' && many
-        ? lay.total + ' pages, each one in ' + joinNames(CFG.langs.map((l) => LNAME[l] || l)) + '. ' + every
-        : lay.total + ' pages' + (many ? ' in ' + (LNAME[st.lang] || st.lang) : '') + '. ' + every,
+        ? lay.total + ' pages, each one in ' + joinNames(CFG.langs.map((l) => LNAME[l] || l)) + '.' + every
+        : lay.total + ' pages' + (many ? ' in ' + (LNAME[st.lang] || st.lang) : '') + '.' + every,
       langs: langs, groups: groups, nodes: nodes, edges: edges, labels: labels,
       leave: () => this.setState({ hover: null }),
       loading: false, loadingText: '', pv: pv
