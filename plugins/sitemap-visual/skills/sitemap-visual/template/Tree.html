@@ -1,0 +1,782 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+/* Phone version of the map: the same palette and type, turned onto the phone's own axis.
+   Home at the top, a trunk down the left edge, sections branch off and open in place. Search stays pinned.
+   Change the look here, never per business. Filled by scripts/render_tree.py. */
+:root {
+  color-scheme: dark;
+  --night: #17133F;
+  --night-2: #221C57;
+  --night-3: #2F2872;
+  --paper: #F4EFE2;
+  --soft: #DCD8FA;
+  --dim: #B9B4F0;
+  --line: rgba(244, 239, 226, .16);
+  --amber: #F2B441;
+  --serp-bg: #FFFFFF;
+  --serp-ink: #202124;
+  --serp-sub: #4D5156;
+  --serp-link: #1A0DAB;
+  --serp-line: #DADCE0;
+  --ground: linear-gradient(rgba(23, 19, 63, .24), rgba(23, 19, 63, .24)), linear-gradient(135deg, #5e60f7 0%, #fbcafa 100%);
+  --display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serp: Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --col: 480px;
+  --bar-h: 72px;
+  --sheet-h: 0px;
+  --trunk: 19px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
+
+h1, h2, h3, p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; color: inherit; touch-action: manipulation; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-wrap: balance;
+}
+
+.num {
+  color: var(--amber);
+  font-weight: 800;
+  line-height: .9;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp {
+  background-image: var(--sprite);
+  background-repeat: no-repeat;
+  background-color: #143529;
+}
+
+.page { max-width: var(--col); margin-inline: auto; padding-bottom: calc(var(--sheet-h) + 8px); transition: padding-bottom .2s ease; }
+.pad { padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+
+.hero { background: var(--ground); padding-block: 16px; }
+.hero-card { background: var(--night); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 14px 32px rgba(23, 19, 63, .3); }
+.headline { display: flex; align-items: center; gap: 14px; }
+.headline .num { font-size: 76px; }
+.headline h1 { font-size: 19px; line-height: 1.16; font-weight: 600; text-wrap: balance; }
+.hero-card .sub { color: var(--soft); font-size: 15px; line-height: 1.4; }
+.langs { display: flex; flex-wrap: wrap; gap: 8px; }
+.lang { height: 44px; padding: 0 16px; border-radius: 22px; border: 1.5px solid var(--line); background: transparent; font-size: 15px; font-weight: 600; cursor: pointer; }
+.lang[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--night); }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--night); padding-block: 12px; height: var(--bar-h); border-bottom: 1px solid var(--line); }
+.find { position: relative; display: block; }
+.find svg { position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; color: var(--dim); pointer-events: none; }
+.find input {
+  width: 100%; height: 48px; padding: 0 48px 0 44px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--night-2); color: var(--paper);
+  font-family: var(--display); font-size: 16px; outline: none; -webkit-appearance: none; appearance: none;
+}
+.find input::placeholder { color: var(--dim); opacity: 1; }
+.find input:focus { border-color: var(--amber); }
+.find input::-webkit-search-cancel-button { display: none; }
+.clear { position: absolute; right: 2px; top: 2px; width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; display: grid; place-items: center; cursor: pointer; }
+.clear svg { position: static; width: 20px; height: 20px; color: var(--soft); }
+
+.status { padding-block: 10px 0; font-size: 15px; color: var(--soft); }
+.status:empty { display: none; }
+.tree { padding-block: 12px 4px; }
+
+/* Rows hang off the trunk with a real elbow, so depth reads without any indent labels. */
+.home-row {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 64px; border-radius: 16px; cursor: pointer; text-align: left;
+  background: var(--paper); color: var(--night); border: 3px solid var(--amber); position: relative; z-index: 1;
+}
+.home-row img, .home-row .initial { width: 40px; height: 40px; border-radius: 20px; flex-shrink: 0; }
+.home-row strong { display: block; font-size: 18px; font-weight: 800; line-height: 1.15; }
+.home-row small { display: block; font-family: var(--mono); font-size: 12px; color: #4B4680; }
+.home-row[data-on] { outline: 3px solid #fff; outline-offset: 2px; }
+.initial { display: grid; place-items: center; background: var(--night); color: var(--amber); font-weight: 800; }
+
+.trunk { position: relative; padding-top: 10px; }
+.sec { position: relative; padding-left: 34px; }
+.sec::before { content: ""; position: absolute; left: var(--trunk); top: -10px; bottom: 0; width: 2.5px; background: var(--dim); opacity: .5; }
+.sec:last-child::before { bottom: auto; height: 42px; }
+.sec::after { content: ""; position: absolute; left: var(--trunk); top: 30px; width: 15px; height: 2.5px; background: var(--c); }
+
+.sec-row {
+  position: sticky; top: calc(var(--bar-h) + env(safe-area-inset-top, 0px)); z-index: 5; width: 100%; display: flex; align-items: center; gap: 10px;
+  min-height: 60px; padding: 8px 6px 8px 12px; margin-block: 0 4px; border-radius: 14px; border: 0; cursor: pointer; text-align: left;
+  background: var(--night-2); box-shadow: 0 0 0 1.5px var(--line) inset, 0 8px 0 -4px var(--night);
+  transition: background-color .12s ease;
+}
+.sec-row:active { background: var(--night-3); }
+.sec-row i { width: 14px; height: 14px; border-radius: 7px; background: var(--c); flex-shrink: 0; box-shadow: 0 0 0 2px var(--night); }
+.sec-name { flex: 1; min-width: 0; font-size: 18px; font-weight: 700; line-height: 1.2; }
+.sec-count { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--c); font-variant-numeric: tabular-nums; }
+.sec-chev { width: 36px; height: 36px; display: grid; place-items: center; color: var(--soft); transition: transform .2s ease; flex-shrink: 0; }
+.sec-chev svg { width: 22px; height: 22px; }
+.sec-row[aria-expanded="true"] .sec-chev { transform: rotate(180deg); }
+
+.kids { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
+.kids[data-open] { grid-template-rows: 1fr; }
+.kids-in { overflow: hidden; min-height: 0; }
+.kids ul { position: relative; padding: 2px 0 10px 20px; }
+.leaf { position: relative; }
+.leaf::before { content: ""; position: absolute; left: -12px; top: 0; bottom: 0; width: 2px; background: var(--c); opacity: .55; }
+.leaf:last-child::before { bottom: auto; height: 30px; }
+.leaf::after { content: ""; position: absolute; left: -12px; top: 29px; width: 12px; height: 2px; background: var(--c); opacity: .55; }
+.leaf-btn {
+  width: 100%; min-height: 58px; padding: 7px 8px; display: flex; align-items: center; gap: 10px; border: 0; background: none; border-radius: 12px; text-align: left; cursor: pointer;
+  transition: background-color .12s ease;
+}
+.leaf-btn:active { background: var(--night-2); }
+.leaf-btn[data-on] { background: var(--night-3); box-shadow: 0 0 0 2px var(--amber) inset; }
+.thumb { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; color: var(--night); background-color: var(--c); }
+.thumb svg { width: 22px; height: 22px; }
+.leaf-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.leaf-name { font-size: 16px; line-height: 1.25; font-weight: 600; overflow-wrap: anywhere; }
+.leaf.post .leaf-name { font-size: 15px; font-weight: 400; line-height: 1.32; }
+.leaf-path { font-family: var(--mono); font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+main[data-searching] { min-height: 100vh; min-height: 100dvh; }
+mark { background: var(--amber); color: var(--night); border-radius: 3px; padding-inline: 1px; }
+.more { width: 100%; min-height: 48px; margin-top: 6px; border-radius: 12px; border: 1.5px solid var(--line); background: none; font-size: 15px; font-weight: 600; cursor: pointer; color: var(--amber); }
+.more:active { background: var(--night-2); }
+
+.none { padding: 22px 4px; display: flex; flex-direction: column; gap: 10px; }
+.none strong { font-size: 18px; }
+.none button { align-self: flex-start; height: 44px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--night-2); font-size: 15px; font-weight: 600; cursor: pointer; }
+
+.path { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 14px; color: var(--soft); }
+.path b { color: var(--paper); font-weight: 600; }
+.path span[aria-hidden] { color: var(--dim); }
+
+/* The search result card. */
+.result {
+  background: var(--serp-bg);
+  color: var(--serp-ink);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-family: var(--serp);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  touch-action: pan-y;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .28);
+}
+.r-site { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.r-site img, .r-site .initial { width: 28px; height: 28px; border-radius: 14px; flex-shrink: 0; font-size: 14px; font-family: var(--display); }
+.r-site img { border: 1px solid var(--serp-line); background: #fff; }
+.r-id { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.r-name { font-size: 14px; }
+.r-crumb { font-size: 12px; color: var(--serp-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-title { font-size: 19px; line-height: 1.28; color: var(--serp-link); text-decoration: none; overflow-wrap: anywhere; padding-block: 2px; }
+.r-title:active { text-decoration: underline; }
+.r-body { display: flex; gap: 12px; align-items: flex-start; }
+.r-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.r-desc { font-size: 14px; line-height: 1.45; color: var(--serp-sub); }
+.r-price { font-size: 13px; color: var(--serp-sub); }
+.r-price b { color: var(--serp-ink); font-weight: 600; }
+.r-thumb { width: 84px; height: 84px; flex-shrink: 0; border-radius: 10px; }
+
+/* Previous / next: at the bottom edge, where a thumb already rests. */
+.stepper { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; gap: 8px; }
+.step-btn {
+  height: 48px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--night-2); display: grid; place-items: center; cursor: pointer;
+  transition: background-color .12s ease, transform .12s ease;
+}
+.step-btn:active { background: var(--night-3); transform: scale(.96); }
+.step-btn svg { width: 22px; height: 22px; }
+.step-at { text-align: center; min-width: 0; font-size: 14px; line-height: 1.3; color: var(--soft); }
+.step-at b { color: var(--paper); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.about { max-width: var(--col); margin-inline: auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 20px 28px; display: flex; flex-direction: column; gap: 14px; }
+.about p { font-size: 14px; line-height: 1.5; color: var(--dim); }
+.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 15px; font-weight: 800; }
+.brand a { color: var(--amber); font-weight: 700; text-decoration: none; padding-block: 12px; }
+.brand span[aria-hidden] { color: var(--dim); font-weight: 400; }
+
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Bottom sheet. Non-modal: the tree stays usable behind it. */
+.sheet {
+  position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; max-width: var(--col); margin-inline: auto; background: var(--night);
+  border-radius: 22px 22px 0 0; box-shadow: 0 -18px 44px rgba(10, 8, 34, .55); border-top: 1px solid var(--line);
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-top: 0; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 10px; max-height: 72%; overflow-y: auto; overscroll-behavior: contain;
+  transform: translateY(calc(100% + 24px)); visibility: hidden;
+  transition: transform .28s cubic-bezier(.2, .85, .3, 1), visibility 0s linear .28s;
+}
+.sheet[data-open] { transform: none; visibility: visible; transition: transform .28s cubic-bezier(.2, .85, .3, 1); }
+.sheet.dragging { transition: none; }
+.grab { display: grid; place-items: center; height: 18px; touch-action: none; cursor: grab; flex-shrink: 0; }
+.grab::before { content: ""; width: 44px; height: 5px; border-radius: 3px; background: rgba(244, 239, 226, .34); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block: -6px -4px; touch-action: none; }
+.sheet-head .kind { font-size: 14px; font-weight: 600; color: var(--amber); white-space: nowrap; }
+.close { width: 44px; height: 44px; margin-right: -8px; border: 0; background: none; border-radius: 12px; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+.close:active { background: var(--night-2); }
+.close svg { width: 22px; height: 22px; }
+.sheet-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex-wrap: wrap; }
+
+.slide-l { animation: slide-l .18s ease-out; }
+.slide-r { animation: slide-r .18s ease-out; }
+@keyframes slide-l { from { transform: translateX(18px); opacity: .4; } }
+@keyframes slide-r { from { transform: translateX(-18px); opacity: .4; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+<!--BODY-->
+<div class="page">
+  <header class="hero pad">
+    <div class="hero-card">
+      <p class="eyebrow" id="eyebrow"></p>
+      <div class="headline">
+        <span class="num" id="big"></span>
+        <h1 id="lead"></h1>
+      </div>
+      <p class="sub" id="sub"></p>
+      <div class="langs" id="langs" role="group" aria-label="Language" hidden></div>
+    </div>
+  </header>
+
+  <div class="bar pad">
+    <label class="find">
+      <span class="sr">Find a page</span>
+      <span data-icon="search"></span>
+      <input id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button type="button" class="clear" id="clear" aria-label="Clear search" hidden><span data-icon="close"></span></button>
+    </label>
+  </div>
+
+  <main class="pad">
+    <p class="status" id="status" role="status"></p>
+    <div class="tree" id="tree"></div>
+  </main>
+
+  <footer class="about">
+    <p id="note"></p>
+    <p class="brand"><span>Your Potential Multiplied.</span><span aria-hidden="true">·</span><a href="https://sunobot.com" target="_blank" rel="noopener">sunobot.com</a></p>
+  </footer>
+</div>
+
+<aside class="sheet" id="sheet" aria-label="How Google shows this page">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <div class="sheet-title"><span class="eyebrow">How Google shows it</span><span class="kind" id="kind"></span></div>
+    <button type="button" class="close" aria-label="Close preview"><span data-icon="close"></span></button>
+  </div>
+  <p class="path" id="path"></p>
+  <article class="result" id="result">
+    <div class="r-site">
+      <img alt="" width="28" height="28">
+      <span class="r-id"><span class="r-name"></span><span class="r-crumb"></span></span>
+    </div>
+    <a class="r-title" href="#" target="_blank" rel="noopener"></a>
+    <div class="r-body">
+      <div class="r-text">
+        <p class="r-desc"></p>
+        <p class="r-price" hidden>Price: <b></b></p>
+      </div>
+      <span class="r-thumb sp" role="img" hidden></span>
+    </div>
+  </article>
+  <div class="stepper">
+    <button type="button" class="step-btn" id="prev" aria-label="Previous page"><span data-icon="left"></span></button>
+    <p class="step-at" id="at" aria-live="polite"></p>
+    <button type="button" class="step-btn" id="next" aria-label="Next page"><span data-icon="right"></span></button>
+  </div>
+</aside>
+
+<script type="application/json" id="site-data">__DATA__</script>
+<script>const SPRITE="__SPRITE__",ICON="__ICON__";</script>
+<script>
+(() => {
+  // Everything from the site is data: it reaches the page through textContent only.
+  const D = JSON.parse(document.getElementById('site-data').textContent);
+  const P = D.pages;
+  const SEC = Object.fromEntries(D.sections.map((s) => [s.k, s]));
+  const ORDER = D.sections.map((s) => s.k);
+  const HOME = P.findIndex((p) => p.s === 'home');
+  const CAP = 12;
+  const LNAME = { en: 'English', es: 'Español', pt: 'Português', fr: 'Français', de: 'Deutsch', it: 'Italiano', nl: 'Nederlands', ja: '日本語', zh: '中文' };
+  const SYM = { USD: '$', BRL: 'R$', EUR: '€', GBP: '£', CAD: 'CA$', MXN: 'MX$' };
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (q, el = document) => el.querySelector(q);
+  if (SPRITE) document.documentElement.style.setProperty('--sprite', `url(${SPRITE})`);
+
+  const ICONS = {
+    pin: ['M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z', 'M14.5 9.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z'],
+    info: ['M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z', 'M12 11v6', 'M12 7.5v.01'],
+    star: ['M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z'],
+    image: ['M4 5h16v14H4z', 'M4 16l5-5 4 4 3-3 4 4', 'M15 9.5v.01'],
+    doc: ['M6 3h8l4 4v14H6z', 'M14 3v4h4', 'M9 12h6', 'M9 16h6'],
+    phone: ['M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2'],
+    chat: ['M4 5h16v11H9l-5 4z', 'M8 10h8'],
+    shield: ['M12 3l8 3v6c0 4.6-3.4 7.8-8 9-4.6-1.2-8-4.4-8-9V6z'],
+    list: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M4.5 6h.01', 'M4.5 12h.01', 'M4.5 18h.01'],
+    left: ['M15 5l-7 7 7 7'],
+    right: ['M9 5l7 7-7 7'],
+    down: ['M5 9l7 7 7-7'],
+    close: ['M6 6l12 12', 'M18 6L6 18'],
+    search: ['M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z', 'M15.5 15.5L20 20'],
+  };
+  function svgIcon(name, width = 2.2) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', width);
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    (ICONS[name] || ICONS.doc).forEach((d) => {
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+  document.querySelectorAll('[data-icon]').forEach((el) => el.appendChild(svgIcon(el.dataset.icon)));
+
+  function placeSprite(el, sp, size) {
+    el.style.backgroundSize = `${D.spriteCols * size}px auto`;
+    el.style.backgroundPosition = `${-(sp % D.spriteCols) * size}px ${-Math.floor(sp / D.spriteCols) * size}px`;
+  }
+
+  function badge() {
+    const el = document.createElement('span');
+    el.className = 'initial';
+    el.textContent = D.business.charAt(0);
+    return el;
+  }
+
+  // One page in one language: [label, title, description, url]. Falls back when a translation is missing.
+  let lang = D.langs[0];
+  const T = (p) => p.tx[lang] || p.tx[D.langs[0]] || Object.values(p.tx)[0];
+  const pathOf = (p) => new URL(T(p)[3]).pathname;
+  const crumbOf = (p) => T(p)[3].replace(/^https?:\/\//, '').split('/').filter(Boolean).map((s) => s.replace(/-[0-9a-f]{8}$/, '')).join(' › ');
+
+  const fold = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const stack = () => P.map((p) => { const [label, title, , url] = T(p); return fold(`${label} ${title} ${url.replace(/^https?:\/\/[^/]+/, '').replace(/[/-]/g, ' ')}`); });
+  let haystack = stack();
+  const open = new Set(ORDER.slice(0, 1));
+  const showAll = new Set();
+  let query = '', sel = null, visible = [];
+  const rows = new Map();
+
+  function fillResult(root, p, dir) {
+    const [, title, desc, url] = T(p);
+    const logo = $('.r-site img', root);
+    if (logo) { if (ICON) logo.src = ICON; else logo.replaceWith(badge()); }
+    $('.r-name', root).textContent = D.business;
+    $('.r-crumb', root).textContent = crumbOf(p);
+    const link = $('.r-title', root);
+    link.textContent = title;
+    link.href = url;
+    $('.r-desc', root).textContent = desc;
+    const price = $('.r-price', root);
+    price.hidden = !p.price;
+    if (p.price) $('b', price).textContent = `${SYM[p.cur || 'USD'] || `${p.cur} `}${p.price}`;
+    const thumb = $('.r-thumb', root);
+    thumb.hidden = p.sp == null;
+    if (p.sp != null) {
+      placeSprite(thumb, p.sp, 84);
+      thumb.setAttribute('aria-label', `Photo from the page: ${T(p)[0]}`);
+    }
+    if (dir && !REDUCED) {
+      root.classList.remove('slide-l', 'slide-r');
+      void root.offsetWidth;
+      root.classList.add(dir > 0 ? 'slide-l' : 'slide-r');
+    }
+  }
+
+  // Horizontal swipe on the card steps through pages; vertical stays with the page.
+  function swipeSteps(el, step) {
+    let x0 = null, y0 = null;
+    el.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; });
+    el.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.6) step(dx < 0 ? 1 : -1);
+    });
+    el.addEventListener('pointercancel', () => { x0 = null; });
+  }
+
+  // Drag the handle down, tap close, or press Escape.
+  function makeSheet(el, onClose) {
+    const api = {
+      open() {
+        if (!el.hasAttribute('data-open')) {
+          el.setAttribute('data-open', '');
+          document.documentElement.style.setProperty('--sheet-h', `${el.offsetHeight}px`);
+        }
+      },
+      close() {
+        el.removeAttribute('data-open');
+        el.style.transform = '';
+        document.documentElement.style.setProperty('--sheet-h', '0px');
+        onClose();
+      },
+      measure() {
+        if (el.hasAttribute('data-open')) document.documentElement.style.setProperty('--sheet-h', `${el.offsetHeight}px`);
+      },
+    };
+    $('.close', el).addEventListener('click', api.close);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') api.close(); });
+    let y0 = null, dy = 0;
+    el.querySelectorAll('.grab, .sheet-head').forEach((handle) => {
+      handle.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        y0 = e.clientY; dy = 0;
+        handle.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+      });
+      handle.addEventListener('pointermove', (e) => {
+        if (y0 === null) return;
+        dy = Math.max(0, e.clientY - y0);
+        el.style.transform = `translateY(${dy}px)`;
+      });
+      const end = () => {
+        if (y0 === null) return;
+        y0 = null;
+        el.classList.remove('dragging');
+        if (dy > 70) api.close();
+        else el.style.transform = '';
+      };
+      handle.addEventListener('pointerup', end);
+      handle.addEventListener('pointercancel', end);
+    });
+    return api;
+  }
+
+  const sheet = makeSheet($('#sheet'), () => {
+    const back = rows.get(sel);
+    rows.get(sel)?.removeAttribute('data-on');
+    sel = null;
+    back?.focus({ preventScroll: true });
+  });
+
+  const terms = () => fold(query).split(/\s+/).filter(Boolean);
+  const matches = (i) => terms().every((t) => haystack[i].includes(t));
+
+  // Marks the matched words, building nodes so site text is never parsed as HTML.
+  function marked(text) {
+    const frag = document.createDocumentFragment();
+    const ts = terms();
+    if (!ts.length) { frag.append(text); return frag; }
+    const low = fold(text);
+    const hits = [];
+    ts.forEach((t) => {
+      let at = low.indexOf(t);
+      while (at !== -1) { hits.push([at, at + t.length]); at = low.indexOf(t, at + t.length); }
+    });
+    hits.sort((a, b) => a[0] - b[0]);
+    let pos = 0;
+    hits.forEach(([a, b]) => {
+      if (a < pos) return;
+      frag.append(text.slice(pos, a));
+      const m = document.createElement('mark');
+      m.textContent = text.slice(a, b);
+      frag.append(m);
+      pos = b;
+    });
+    frag.append(text.slice(pos));
+    return frag;
+  }
+
+  function leaf(i) {
+    const p = P[i];
+    const label = T(p)[0];
+    const plain = SEC[p.s].article && !p.hub;
+    const li = document.createElement('li');
+    li.className = plain ? 'leaf post' : 'leaf';
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'leaf-btn';
+    const thumb = document.createElement('span');
+    thumb.className = 'thumb';
+    if (p.sp != null) { thumb.classList.add('sp'); placeSprite(thumb, p.sp, 44); } else thumb.appendChild(svgIcon(p.ic, 2));
+    const text = document.createElement('span');
+    text.className = 'leaf-text';
+    const name = document.createElement('span');
+    name.className = 'leaf-name';
+    name.appendChild(marked(p.hub ? `${label} main page` : label));
+    text.appendChild(name);
+    if (!plain) {
+      const path = document.createElement('span');
+      path.className = 'leaf-path';
+      path.textContent = pathOf(p);
+      text.appendChild(path);
+    }
+    b.append(thumb, text);
+    b.addEventListener('click', () => show(i));
+    if (i === sel) b.setAttribute('data-on', '');
+    rows.set(i, b);
+    li.appendChild(b);
+    return li;
+  }
+
+  function render() {
+    const tree = $('#tree');
+    rows.clear();
+    visible = [];
+    tree.replaceChildren();
+    const searching = terms().length > 0;
+    // Short results must not shrink the page, or the search bar would slide back down under the keyboard.
+    $('main').toggleAttribute('data-searching', searching);
+
+    if (HOME >= 0 && (!searching || matches(HOME))) {
+      const home = document.createElement('button');
+      home.type = 'button';
+      home.className = 'home-row';
+      let logo;
+      if (ICON) {
+        logo = document.createElement('img');
+        logo.src = ICON; logo.alt = ''; logo.width = 40; logo.height = 40;
+      } else logo = badge();
+      const label = document.createElement('span');
+      const strong = document.createElement('strong');
+      strong.textContent = D.business;
+      const small = document.createElement('small');
+      small.textContent = 'Home page · /';
+      label.append(strong, small);
+      home.append(logo, label);
+      home.addEventListener('click', () => show(HOME));
+      if (sel === HOME) home.setAttribute('data-on', '');
+      rows.set(HOME, home);
+      visible.push(HOME);
+      tree.appendChild(home);
+    }
+
+    const trunk = document.createElement('div');
+    trunk.className = 'trunk';
+    let total = visible.length;
+
+    ORDER.forEach((k) => {
+      const ids = P.map((p, i) => (p.s === k ? i : -1)).filter((i) => i >= 0);
+      const hits = searching ? ids.filter(matches) : ids;
+      if (!hits.length) return;
+      total += hits.length;
+      const isOpen = searching || open.has(k);
+
+      const sec = document.createElement('section');
+      sec.className = 'sec';
+      sec.style.setProperty('--c', SEC[k].color);
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'sec-row';
+      row.setAttribute('aria-expanded', isOpen);
+      row.setAttribute('aria-controls', `kids-${k}`);
+      const dot = document.createElement('i');
+      const name = document.createElement('span');
+      name.className = 'sec-name';
+      name.textContent = SEC[k].name;
+      const count = document.createElement('span');
+      count.className = 'sec-count';
+      count.textContent = searching ? `${hits.length}/${ids.length}` : ids.length;
+      const chev = document.createElement('span');
+      chev.className = 'sec-chev';
+      chev.appendChild(svgIcon('down'));
+      row.append(dot, name, count, chev);
+
+      const kids = document.createElement('div');
+      kids.className = 'kids';
+      kids.id = `kids-${k}`;
+      const inner = document.createElement('div');
+      inner.className = 'kids-in';
+      const ul = document.createElement('ul');
+      inner.appendChild(ul);
+      kids.appendChild(inner);
+      if (isOpen) kids.setAttribute('data-open', ''); else kids.inert = true;
+
+      const fill = () => {
+        ul.replaceChildren();
+        const cap = hits.length > 20 && !searching && !showAll.has(k) ? CAP : Infinity;
+        hits.slice(0, cap).forEach((i) => ul.appendChild(leaf(i)));
+        inner.querySelector('.more')?.remove();
+        if (hits.length > cap) {
+          const more = document.createElement('button');
+          more.type = 'button';
+          more.className = 'more';
+          more.textContent = `Show all ${hits.length} pages`;
+          more.addEventListener('click', () => { showAll.add(k); fill(); refreshVisible(); rows.get(hits[cap])?.focus({ preventScroll: true }); });
+          inner.appendChild(more);
+        }
+      };
+      if (isOpen) fill();
+
+      row.addEventListener('click', () => {
+        const now = !open.has(k) && row.getAttribute('aria-expanded') !== 'true';
+        if (now) { open.add(k); if (!ul.children.length) fill(); } else open.delete(k);
+        row.setAttribute('aria-expanded', now);
+        kids.toggleAttribute('data-open', now);
+        kids.inert = !now;
+        refreshVisible();
+        if (!now && row.getBoundingClientRect().top < $('.bar').getBoundingClientRect().bottom + 2) {
+          sec.scrollIntoView({ block: 'start', behavior: 'auto' });
+          scrollBy(0, -$('.bar').offsetHeight - 8);
+        }
+      });
+
+      sec.append(row, kids);
+      trunk.appendChild(sec);
+    });
+    tree.appendChild(trunk);
+    refreshVisible();
+
+    const status = $('#status');
+    if (!searching) { status.textContent = ''; return; }
+    status.textContent = total === 0 ? '' : `${total} of ${P.length} pages match “${query.trim()}”`;
+    if (total === 0) {
+      const none = document.createElement('div');
+      none.className = 'none';
+      const s = document.createElement('strong');
+      s.textContent = `No page matches “${query.trim()}”`;
+      const p = document.createElement('p');
+      p.textContent = D.noResults;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = 'Clear search';
+      b.addEventListener('click', clearSearch);
+      none.append(s, p, b);
+      tree.replaceChildren(none);
+    }
+  }
+
+  // Previous and next follow what is open on screen, in tree order. Pages are stored in that order.
+  function refreshVisible() {
+    visible = [...rows.entries()].filter(([, el]) => el.isConnected && !el.closest('[inert]')).map(([i]) => i).sort((a, b) => a - b);
+    if (sel != null) writeAt();
+  }
+
+  function writeAt() {
+    const at = visible.indexOf(sel) + 1;
+    const b = document.createElement('b');
+    b.textContent = at ? `${at} of ${visible.length}` : `1 of ${P.length}`;
+    $('#at').replaceChildren(b, ' pages shown');
+  }
+
+  function show(i, dir) {
+    rows.get(sel)?.removeAttribute('data-on');
+    sel = i;
+    rows.get(i)?.setAttribute('data-on', '');
+    const p = P[i];
+    fillResult($('#result'), p, dir);
+    $('#kind').textContent = p.k;
+    const path = $('#path');
+    path.replaceChildren();
+    const label = T(p)[0];
+    const steps = ['Home'];
+    if (p.s !== 'home') { steps.push(SEC[p.s].name); if (!p.hub) steps.push(label.length > 30 ? `${label.slice(0, 29).trim()}…` : label); }
+    steps.forEach((s, n) => {
+      if (n) { const sep = document.createElement('span'); sep.setAttribute('aria-hidden', 'true'); sep.textContent = '›'; path.append(sep); }
+      const el = document.createElement(n === steps.length - 1 ? 'b' : 'span');
+      el.textContent = s;
+      path.append(el);
+    });
+    writeAt();
+    sheet.open();
+    sheet.measure();
+    keepVisible(rows.get(i));
+  }
+
+  // The sheet covers the lower part of the tree, so scroll against what is left.
+  function keepVisible(el) {
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    const sticky = el.closest('.sec')?.querySelector('.sec-row');
+    const top = (sticky ? sticky.getBoundingClientRect().height : 0) + $('.bar').getBoundingClientRect().height + 12;
+    const bottom = innerHeight - $('#sheet').offsetHeight - 8;
+    if (box.top >= top && box.bottom <= bottom) return;
+    scrollBy({ top: box.top < top ? box.top - top : box.bottom - bottom, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+
+  function step(d) {
+    if (!visible.length) return;
+    const at = visible.indexOf(sel);
+    show(visible[(Math.max(at, 0) + d + visible.length) % visible.length], d);
+  }
+
+  function clearSearch() {
+    query = '';
+    $('#q').value = '';
+    $('#clear').hidden = true;
+    render();
+    $('#q').focus();
+  }
+
+  $('#eyebrow').textContent = D.eyebrow;
+  $('#big').textContent = D.big;
+  $('#lead').textContent = D.lead;
+  $('#sub').textContent = D.sub;
+  $('#note').textContent = D.note;
+  $('#q').placeholder = D.search;
+
+  if (D.langs.length > 1) {
+    const box = $('#langs');
+    box.hidden = false;
+    D.langs.forEach((l) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lang';
+      b.textContent = LNAME[l] || l.toUpperCase();
+      b.setAttribute('aria-pressed', l === lang);
+      b.addEventListener('click', () => {
+        lang = l;
+        document.documentElement.lang = l;
+        box.querySelectorAll('.lang').forEach((x) => x.setAttribute('aria-pressed', x === b));
+        haystack = stack();
+        const keep = sel;
+        render();
+        if (keep != null) show(keep);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  let timer = 0;
+  $('#q').addEventListener('input', (e) => {
+    query = e.target.value;
+    $('#clear').hidden = !query;
+    clearTimeout(timer);
+    timer = setTimeout(render, 90);
+  });
+  // On a phone the keyboard takes half the screen: pin the search bar to the top so results stay visible.
+  $('#q').addEventListener('focus', () => {
+    const top = $('.bar').getBoundingClientRect().top;
+    if (top > 1) scrollBy({ top, behavior: REDUCED ? 'auto' : 'smooth' });
+  });
+  $('#q').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
+  $('#clear').addEventListener('click', clearSearch);
+  $('#prev').addEventListener('click', () => step(-1));
+  $('#next').addEventListener('click', () => step(1));
+  swipeSteps($('#result'), step);
+  render();
+})();
+</script>

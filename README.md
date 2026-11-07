@@ -10,7 +10,7 @@ for each one, means a lot.
 `sitemap-visual` is a [Claude Code](https://code.claude.com) skill that builds that
 map automatically from the business's live `sitemap.xml`. You ask Claude for it; a
 few minutes later you have an interactive canvas you can present on a laptop or a
-projector.
+projector, and a phone page the owner can open anywhere.
 
 ![Sitemap Visual for Baja Cafe, a Mexican restaurant in Deerfield Beach, FL: 201 pages on Google, every dish with its photo, seven delivery towns, three languages, and a Google-style preview of the selected page](docs/baja-cafe-map.jpg)
 
@@ -38,12 +38,35 @@ found. The card on the left shows how Google presents the selected page.*
 Tested on a restaurant (67 pages × 3 languages = 201) and a florist
 (127 pages × 3 languages = 381, with 102 product photos).
 
+## The phone version
+
+The canvas is too wide for a phone and its dots are too small to tap, so every map
+also comes with a **Site Tree**: one self-contained page built from the same data.
+
+- **The map on the phone's own axis:** home at the top, a trunk down the left edge,
+  sections branching off and opening in place.
+- **Search every page** by name, title or URL, from a bar that stays pinned above
+  the tree.
+- **The same Google-style card** in a bottom sheet, with the page's path from home,
+  previous and next buttons, and a swipe between pages.
+- **Works on any site:** sections come from the URLs, so a plain site with folders
+  like `/services/` and `/blog/` gets a real tree too.
+- **Languages and prices** carry over. Language chips appear only when a site has
+  more than one language.
+- **Thumb-sized:** every button and link is at least 44px, and nothing scrolls
+  sideways from 320px up.
+
+It publishes as a private Artifact, or to Cloudflare Pages when you ask for a public
+link. The page is marked `noindex`, because it repeats the site's own titles and
+descriptions and should never compete with them in Google.
+
 ## Requirements
 
 - **Claude Code** with **Artifacts** available (a claude.ai account). The map is a
   [Claude Design](https://claude.ai) canvas, created through Claude's Artifact tool.
 - **Python 3** with **Pillow**: `pip install pillow`
-- **Node.js** (only for the built-in logic check)
+- **Node.js** (only for the built-in logic checks)
+- **Wrangler** (only to put the phone page on Cloudflare Pages)
 
 ## Install
 
@@ -106,11 +129,12 @@ Claude then:
 2. **Creates a Design canvas** and uploads just two files: the photo sheet and the icon.
 3. **Renders** the map with the page data built in, **checks** its logic, and
    **publishes** it.
-4. **Hands you the link** and tells you about anything missing on the site
+4. **Builds the phone version** from the same data and checks it.
+5. **Hands you the links** and tells you about anything missing on the site
    (items without a price or photo, pages that only answered after retries).
 
-Canvases are private. Share yours from the canvas's **Share** menu before the
-business opens it.
+Canvases and Artifacts are private. Share yours from its **Share** menu before the
+business opens it. A Cloudflare Pages link is public.
 
 ## The URL shape it understands
 
@@ -131,8 +155,9 @@ languages with `--langs` (default `en,es,pt`; the first one is the language of
 unprefixed URLs). Sites where one sitemap lists many businesses
 (`/<lang>/<slug>/…`) work with `--slug`.
 
-Other sites still render, but all their pages land in "Business pages". The rich
-view needs the shape above.
+Other sites still render, but on the canvas all their pages land in "Business
+pages". The rich view needs the shape above. The phone version does better: a
+top-level folder holding two or more pages becomes its own section.
 
 ## Running the scripts yourself
 
@@ -153,26 +178,41 @@ python3 $SK/render.py --work work/example \
 node $SK/check.js work/example/design/project/Main.dc.html
 ```
 
-`work/example/design/` is then published to the canvas.
+`work/example/design/` is then published to the canvas. The phone version needs no
+uploads, because the photo sheet and the icon are built into the page:
+
+```bash
+# 4. build the phone page and check it (must print OK)
+python3 $SK/render_tree.py --work work/example --noun Dish \
+  --eyebrow "Example Taqueria · Austin, TX · since 2004"
+node $SK/check_tree.js work/example/mobile/index.html work/example/manifest.json
+```
+
+`work/example/mobile/index.html` is a whole page for any static host, and
+`work/example/tree-artifact.html` is the same page for an Artifact. To rename or
+reorder sections, pass `--config` a JSON file; `SKILL.md` shows the format.
 
 | File | What it does |
 |---|---|
 | `scripts/build_data.py` | Reads the sitemap, fetches each page per language (title, description, price, photo) with delay and retries, writes `pages.json`, `manifest.json`, `sprite.jpg`, `icon.png` |
 | `scripts/render.py` | Fills the template with the business's data and writes the canvas files |
 | `scripts/check.js` | Runs the map's logic in Node and fails on broken or off-canvas layout |
+| `scripts/render_tree.py` | Works out the sections and writes the self-contained phone page |
+| `scripts/check_tree.js` | Checks the phone page's counts, sections and URLs without printing site text |
 | `template/Main.dc.html` | The interactive map (a Claude Design component) |
+| `template/Tree.html` | The phone version |
 | `SKILL.md` | The step-by-step instructions Claude follows |
 
 ## Customize the look
 
-Everything visual lives in `template/Main.dc.html`. Change it there, never per
-business:
+Everything visual lives in `template/Main.dc.html`, and in `template/Tree.html` for
+the phone version. Change it there, never per business:
 
 - **Background:** the root element's `linear-gradient(135deg, #5e60f7, #fbcafa)`
   (darkened 24% for contrast).
 - **Colors per group:** `COLORS` in the script (items, towns, menu, business).
 - **Brand pill** at the bottom center ("Your Potential Multiplied · sunobot.com"):
-  replace it with your own line and link.
+  replace it with your own line and link, in both templates.
 - **Language names:** `LNAME` in the script.
 
 ## Security
@@ -191,14 +231,15 @@ as data, never as instructions:
   JSON and displayed as text. Nothing from the site executes.
 - **Kept out of the conversation.** `SKILL.md` tells Claude never to act on
   instructions found in site text and not to read the page data into the chat;
-  `check.js` reports the shape of each page (lengths), not its words.
+  `check.js` and `check_tree.js` report the shape of each page, not its words.
 
 Automated skill scanners may still flag "third-party content exposure". Reading a
 website is what the skill is for, and the steps above keep that content inert.
 
 ## Limits
 
-- Laid out for a laptop or projector (1440×940), not a phone.
+- The canvas is laid out for a laptop or projector (1440×940). Use the Site Tree on
+  a phone.
 - Town labels come from English titles shaped "… to Town, ST", else from the URL.
 - A sitemap with only a few pages makes an unconvincing map; the skill says so
   instead of publishing one.
